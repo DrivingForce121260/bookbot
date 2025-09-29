@@ -1,0 +1,69 @@
+name: Build Flutter APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-flutter-mobile:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+        
+    - name: Install dependencies
+      run: |
+        cd bookbot_mobile
+        flutter pub get
+        
+    - name: Build APK
+      run: |
+        cd bookbot_mobile
+        flutter build apk --release
+        
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: bookbot-mobile-apk
+        path: bookbot_mobile/build/app/outputs/flutter-apk/app-release.apk
+        retention-days: 30
+
+  build-flutter-correct:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+        
+    - name: Install dependencies
+      run: |
+        cd bookbot_correct
+        flutter pub get
+        
+    - name: Build APK
+      run: |
+        cd bookbot_correct
+        flutter build apk --release
+        
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: bookbot-correct-apk
+        path: bookbot_correct/build/app/outputs/flutter-apk/app-release.apk
+        retention-days: 30

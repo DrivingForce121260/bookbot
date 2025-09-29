@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookBot - Lesefortschritt Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .book-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .book-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .book-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .book-author {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .book-progress {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        
+        .book-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        
+        .summary-box {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .summary-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1976d2;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 5px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 BookBot</h1>
+            <p>Ihr persönlicher Lesefortschritt Tracker</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('home')">🏠 Start</div>
+            <div class="tab" onclick="showTab('books')">📖 Bücher</div>
+            <div class="tab" onclick="showTab('add')">➕ Hinzufügen</div>
+        </div>
+        
+        <!-- Home Tab -->
+        <div id="home" class="tab-content active">
+            <div class="card">
+                <h2>Willkommen bei BookBot!</h2>
+                <p>Verfolgen Sie Ihren Lesefortschritt und erhalten Sie Zusammenfassungen Ihrer Bücher.</p>
+                
+                <div id="recent-books">
+                    <h3>Letzte Bücher:</h3>
+                    <div id="recent-books-list"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Books Tab -->
+        <div id="books" class="tab-content">
+            <div class="card">
+                <h2>Meine Bücher</h2>
+                <div id="books-list" class="book-list"></div>
+            </div>
+        </div>
+        
+        <!-- Add Book Tab -->
+        <div id="add" class="tab-content">
+            <div class="card">
+                <h2>Neues Buch hinzufügen</h2>
+                <form id="add-book-form">
+                    <div class="form-group">
+                        <label for="title">Titel:</label>
+                        <input type="text" id="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="author">Autor:</label>
+                        <input type="text" id="author" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="total-pages">Gesamtseiten:</label>
+                        <input type="number" id="total-pages" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="current-page">Aktuelle Seite:</label>
+                        <input type="number" id="current-page" value="0">
+                    </div>
+                    <button type="submit" class="btn">Buch hinzufügen</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Book Detail Modal -->
+        <div id="book-detail" class="card hidden">
+            <h2 id="detail-title"></h2>
+            <p id="detail-author"></p>
+            
+            <div class="form-group">
+                <label for="update-page">Aktuelle Seite aktualisieren:</label>
+                <input type="number" id="update-page">
+                <button onclick="updateProgress()" class="btn btn-small">Aktualisieren</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="summary-page">Zusammenfassung bis Seite:</label>
+                <input type="number" id="summary-page">
+                <button onclick="generateSummary()" class="btn btn-small">Zusammenfassung generieren</button>
+            </div>
+            
+            <div id="summary-result" class="summary-box hidden">
+                <div class="summary-title">Zusammenfassung:</div>
+                <div id="summary-text"></div>
+            </div>
+            
+            <div class="book-actions">
+                <button onclick="closeDetail()" class="btn btn-secondary">Schließen</button>
+                <button onclick="deleteBook()" class="btn btn-secondary">Löschen</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let books = JSON.parse(localStorage.getItem('bookbot-books')) || [];
+        let currentBook = null;
+        
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'books') {
+                renderBooks();
+            } else if (tabName === 'home') {
+                renderRecentBooks();
+            }
+        }
+        
+        function saveBooks() {
+            localStorage.setItem('bookbot-books', JSON.stringify(books));
+        }
+        
+        function renderBooks() {
+            const booksList = document.getElementById('books-list');
+            if (books.length === 0) {
+                booksList.innerHTML = '<p>Noch keine Bücher hinzugefügt. Fügen Sie Ihr erstes Buch hinzu!</p>';
+                return;
+            }
+            
+            booksList.innerHTML = books.map((book, index) => {
+                const progress = (book.currentPage / book.totalPages) * 100;
+                return `
+                    <div class="book-item">
+                        <div class="book-title">${book.title}</div>
+                        <div class="book-author">von ${book.author}</div>
+                        <div class="book-progress">
+                            <div class="progress-bar" style="width: ${progress}%"></div>
+                        </div>
+                        <div>Fortschritt: ${book.currentPage} / ${book.totalPages} Seiten (${Math.round(progress)}%)</div>
+                        <div class="book-actions">
+                            <button onclick="openDetail(${index})" class="btn btn-small">Details</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderRecentBooks() {
+            const recentList = document.getElementById('recent-books-list');
+            if (books.length === 0) {
+                recentList.innerHTML = '<p>Noch keine Bücher hinzugefügt.</p>';
+                return;
+            }
+            
+            const recentBooks = books.slice(-3).reverse();
+            recentList.innerHTML = recentBooks.map((book, index) => {
+                const progress = (book.currentPage / book.totalPages) * 100;
+                return `
+                    <div class="book-item">
+                        <div class="book-title">${book.title}</div>
+                        <div class="book-author">von ${book.author}</div>
+                        <div class="book-progress">
+                            <div class="progress-bar" style="width: ${progress}%"></div>
+                        </div>
+                        <div>Fortschritt: ${book.currentPage} / ${book.totalPages} Seiten (${Math.round(progress)}%)</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function openDetail(index) {
+            currentBook = index;
+            const book = books[index];
+            document.getElementById('detail-title').textContent = book.title;
+            document.getElementById('detail-author').textContent = `von ${book.author}`;
+            document.getElementById('update-page').value = book.currentPage;
+            document.getElementById('summary-page').value = book.currentPage;
+            document.getElementById('book-detail').classList.remove('hidden');
+            document.getElementById('summary-result').classList.add('hidden');
+        }
+        
+        function closeDetail() {
+            document.getElementById('book-detail').classList.add('hidden');
+            currentBook = null;
+        }
+        
+        function updateProgress() {
+            const newPage = parseInt(document.getElementById('update-page').value);
+            if (newPage >= 0 && newPage <= books[currentBook].totalPages) {
+                books[currentBook].currentPage = newPage;
+                saveBooks();
+                renderBooks();
+                renderRecentBooks();
+                alert('Fortschritt aktualisiert!');
+            } else {
+                alert('Ungültige Seitenzahl!');
+            }
+        }
+        
+        function generateSummary() {
+            const summaryPage = parseInt(document.getElementById('summary-page').value);
+            const book = books[currentBook];
+            
+            if (summaryPage > book.totalPages) {
+                alert('Seitenzahl überschreitet Gesamtseiten!');
+                return;
+            }
+            
+            // Simulierte KI-Zusammenfassung
+            const summary = `Zusammenfassung von "${book.title}" bis Seite ${summaryPage}:
+
+Die Geschichte beginnt mit ${book.title.toLowerCase()}, wo der Hauptcharakter in eine faszinierende Welt eintritt. Bis Seite ${summaryPage} haben wir wichtige Entwicklungen gesehen:
+
+• Charakterentwicklung: Der Protagonist hat sich von einem unsicheren Anfänger zu einer entschlossenen Person entwickelt
+• Plot-Entwicklung: Mehrere wichtige Ereignisse haben stattgefunden, die die Richtung der Geschichte geprägt haben
+• Weltaufbau: Die Leser haben einen tieferen Einblick in die komplexe Welt des Buches erhalten
+• Konflikte: Verschiedene Spannungen und Herausforderungen sind aufgetreten
+
+Die Geschichte zeigt eine solide Entwicklung und hält den Leser mit interessanten Wendungen und Charakterentwicklungen bei der Stange.`;
+
+            document.getElementById('summary-text').textContent = summary;
+            document.getElementById('summary-result').classList.remove('hidden');
+        }
+        
+        function deleteBook() {
+            if (confirm('Möchten Sie dieses Buch wirklich löschen?')) {
+                books.splice(currentBook, 1);
+                saveBooks();
+                closeDetail();
+                renderBooks();
+                renderRecentBooks();
+            }
+        }
+        
+        document.getElementById('add-book-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value;
+            const totalPages = parseInt(document.getElementById('total-pages').value);
+            const currentPage = parseInt(document.getElementById('current-page').value);
+            
+            if (currentPage > totalPages) {
+                alert('Aktuelle Seite kann nicht größer als Gesamtseiten sein!');
+                return;
+            }
+            
+            books.push({
+                title,
+                author,
+                totalPages,
+                currentPage,
+                dateAdded: new Date().toISOString()
+            });
+            
+            saveBooks();
+            renderBooks();
+            renderRecentBooks();
+            
+            // Clear form
+            document.getElementById('title').value = '';
+            document.getElementById('author').value = '';
+            document.getElementById('total-pages').value = '';
+            document.getElementById('current-page').value = '0';
+            
+            alert('Buch erfolgreich hinzugefügt!');
+            showTab('books');
+        });
+        
+        // Initialize
+        renderBooks();
+        renderRecentBooks();
+    </script>
+</body>
+</html>
+
+
+

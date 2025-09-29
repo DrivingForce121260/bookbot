@@ -1,0 +1,45 @@
+name: Build Expo APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-expo-apk:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Setup Expo CLI
+      run: npm install -g @expo/cli
+      
+    - name: Login to Expo (if needed)
+      run: |
+        echo "EXPO_TOKEN=${{ secrets.EXPO_TOKEN }}" >> $GITHUB_ENV
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        
+    - name: Build APK with EAS
+      run: |
+        npx eas build --platform android --non-interactive
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        
+    - name: Download APK
+      run: |
+        # APK wird automatisch von EAS bereitgestellt
+        echo "APK wird von Expo bereitgestellt. Prüfen Sie Ihr Expo-Dashboard."

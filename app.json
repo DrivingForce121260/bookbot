@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "BookBot",
+    "slug": "bookbot",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#6366f1"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#6366f1"
+      },
+      "package": "com.anonymous.bookbot"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
