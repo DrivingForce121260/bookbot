@@ -136,3 +136,4 @@ expo-env.d.ts
 
 # EAS
 eas.json
+node_modules
